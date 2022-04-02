@@ -1,6 +1,8 @@
 ﻿@page "/indice-pessoas"
 @inject HttpClient Http
 @inject IJSRuntime JS
+@using System.IO
+@using CsvHelper
 
 <h3>Pessoas</h3>
 
@@ -40,6 +42,9 @@ else
             }
         </tbody>
     </table>
+
+    <button @onclick="ExportarCsv">Exportar CSV</button>
+    <button @onclick="ExportarExcel">Exportar Excel</button>
 }
 
 @code {
@@ -63,7 +68,48 @@ else
         {
             await Http.DeleteAsync($"pessoas/{idPessoa}");
             await ListarPessoas();
+        }  
+    }
+
+    private async Task ExportarCsv()
+    {
+        using (var memoryStream = new MemoryStream())
+        {
+            using (var writer = new StreamWriter(memoryStream))
+            {
+                using (var csv = new CsvWriter(writer, System.Globalization.CultureInfo.CurrentCulture))
+                {
+                    csv.WriteRecords(pessoas);
+                }
+
+                var arr = memoryStream.ToArray();
+                await JS.SalvarComo("pessoas.csv", arr);
+            }
         }
-        
+    }
+
+    private async Task ExportarExcel()
+    {
+        using (var package = new ExcelPackage())
+        {
+            var worksheet = package.Workbook.Worksheets.Add("Pessoas");
+
+            var tableBody = worksheet.Cells["A1:A1"].LoadFromCollection(
+                from f in pessoas
+                select new { f.Id, f.Nome }, true);
+
+            var header = worksheet.Cells["A1:B1"];
+            worksheet.DefaultColWidth = 25;
+            tableBody.Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+            tableBody.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            tableBody.Style.Fill.BackgroundColor.SetColor(Color.WhiteSmoke);
+            tableBody.Style.Border.BorderAround(ExcelBorderStyle.Medium);
+            header.Style.Font.Bold = true;
+            header.Style.Font.Color.SetColor(Color.White);
+            header.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            header.Style.Fill.BackgroundColor.SetColor(Color.DarkBlue);
+
+            await JS.SalvarComo("pessoas.xlsx", package.GetAsByteArray());
+        }
     }
 }
