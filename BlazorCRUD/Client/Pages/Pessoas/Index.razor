@@ -1,0 +1,69 @@
+﻿@page "/indice-pessoas"
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<h3>Pessoas</h3>
+
+<div>
+    <a class="btn btn-success" href="criar-pessoa">Nova Pessoa</a>
+</div>
+
+@if(pessoas == null)
+{
+    <text>Carregando...</text>
+}
+else if(pessoas.Length == 0)
+{
+    <text>Não há pessoas no banco de dados</text>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Id</th>
+                <th>Nome</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pessoa in pessoas)
+            {
+                <tr>
+                    <td>
+                        <a class="btn btn-info" href="editar-pessoa/@pessoa.Id">Editar</a>
+                        <button class="btn btn-danger" @onclick="@(() => ExcluirPessoa(pessoa.Id))">Excluir</button>
+                    </td>
+                    <td>@pessoa.Id</td>
+                    <td>@pessoa.Nome</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    Pessoa[] pessoas { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ListarPessoas();
+    }
+
+    async Task ListarPessoas()
+    {
+        pessoas = await Http.GetFromJsonAsync<Pessoa[]>("pessoas");
+    }
+
+    async Task ExcluirPessoa(int idPessoa)
+    {
+        var pessoaSelecionada = pessoas.First(p => p.Id == idPessoa);
+        string mensagemConfirmacao = $"Deseja realmente excluir a pessoa {pessoaSelecionada.Nome}?";
+        if(await JS.InvokeAsync<bool>("confirm", mensagemConfirmacao))
+        {
+            await Http.DeleteAsync($"pessoas/{idPessoa}");
+            await ListarPessoas();
+        }
+        
+    }
+}

@@ -1,0 +1,20 @@
+﻿<EditForm Model="@Pessoa" OnValidSubmit="@OnValidSubmit">
+    <div class="form-field">
+        <label>Nome:</label>
+        <div>
+            <InputText @bind-Value="@Pessoa.Nome" />
+            <ValidationMessage For="@(() => Pessoa.Nome)" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-success">@TextoBotao</button>
+    <DataAnnotationsValidator />
+</EditForm>
+
+@code {
+    [Parameter]
+    public Pessoa Pessoa { get; set; } = new Pessoa();
+    [Parameter]
+    public string TextoBotao { get; set; } = "Salvar mudanças";
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+}

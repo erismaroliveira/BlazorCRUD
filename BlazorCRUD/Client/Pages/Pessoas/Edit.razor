@@ -1,0 +1,24 @@
+﻿@page "/editar-pessoa/{IdPessoa:int}"
+@inject HttpClient Http
+@inject NavigationManager UriHelper
+
+<h3>Editar Pessoa</h3>
+
+<FormularioPessoas TextoBotao="Editar Pessoa" OnValidSubmit="@EditarPessoa" Pessoa="@pessoa" />
+
+@code {
+    [Parameter]
+    public int IdPessoa { get; set; }
+    Pessoa pessoa = new Pessoa();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        pessoa = await Http.GetFromJsonAsync<Pessoa>($"pessoas/{IdPessoa}");
+    }
+
+    async Task EditarPessoa()
+    {
+        await Http.PutAsJsonAsync("pessoas", pessoa);
+        UriHelper.NavigateTo("indice-pessoas");
+    }
+}
