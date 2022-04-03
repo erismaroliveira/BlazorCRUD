@@ -64,7 +64,7 @@ else
     {
         var pessoaSelecionada = pessoas.First(p => p.Id == idPessoa);
         string mensagemConfirmacao = $"Deseja realmente excluir a pessoa {pessoaSelecionada.Nome}?";
-        if(await JS.InvokeAsync<bool>("confirm", mensagemConfirmacao))
+        if(await JS.Confirm("Confirmar", mensagemConfirmacao, TipoMensagemSweetAlert.question))
         {
             await Http.DeleteAsync($"pessoas/{idPessoa}");
             await ListarPessoas();
